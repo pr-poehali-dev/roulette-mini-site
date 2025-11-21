@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 
@@ -49,7 +51,12 @@ export default function Index() {
     const saved = localStorage.getItem('inventory');
     return saved ? JSON.parse(saved) : [];
   });
-  const [activeTab, setActiveTab] = useState<'roulette' | 'shop' | 'inventory'>('roulette');
+  const [activeTab, setActiveTab] = useState<'roulette' | 'shop' | 'inventory' | 'admin'>('roulette');
+  const [isAdmin, setIsAdmin] = useState(() => {
+    return localStorage.getItem('isAdmin') === 'true';
+  });
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [adminCode, setAdminCode] = useState('');
   const [isSpinning, setIsSpinning] = useState(false);
   const [currentItem, setCurrentItem] = useState<Item | null>(null);
   const [activeBuff, setActiveBuff] = useState<string | null>(() => {
@@ -160,6 +167,37 @@ export default function Index() {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
+  const checkAdminCode = () => {
+    if (adminCode === '123') {
+      setIsAdmin(true);
+      localStorage.setItem('isAdmin', 'true');
+      setShowAdminLogin(false);
+      setAdminCode('');
+      toast({ title: '🔓 Доступ получен!', description: 'Добро пожаловать, админ!' });
+    } else {
+      toast({ title: '❌ Неверный код!', variant: 'destructive' });
+    }
+  };
+
+  const addCoins = (amount: number) => {
+    setCoins(coins + amount);
+    toast({ title: '💰 Монеты добавлены!', description: `+${amount} монет` });
+  };
+
+  const resetProgress = () => {
+    setCoins(100);
+    setInventory([]);
+    setActiveBuff(null);
+    localStorage.removeItem('activeBuff');
+    localStorage.removeItem('buffExpiry');
+    toast({ title: '🔄 Прогресс сброшен!', description: 'Все данные обнулены' });
+  };
+
+  const clearInventory = () => {
+    setInventory([]);
+    toast({ title: '🗑️ Инвентарь очищен!' });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/10 p-4">
       <div className="max-w-4xl mx-auto">
@@ -172,12 +210,22 @@ export default function Index() {
               Рулетка удачи
             </h1>
           </div>
-          <Card className="px-6 py-3 bg-gradient-to-r from-accent to-accent/80 border-accent">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">💰</span>
-              <span className="text-2xl font-bold text-white">{coins}</span>
-            </div>
-          </Card>
+          <div className="flex items-center gap-3">
+            <Card className="px-6 py-3 bg-gradient-to-r from-accent to-accent/80 border-accent">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">💰</span>
+                <span className="text-2xl font-bold text-white">{coins}</span>
+              </div>
+            </Card>
+            <Button
+              onClick={() => setShowAdminLogin(true)}
+              variant="outline"
+              size="icon"
+              className="w-10 h-10"
+            >
+              {isAdmin ? '👑' : '🔒'}
+            </Button>
+          </div>
         </div>
 
         {activeBuff && (
@@ -196,7 +244,7 @@ export default function Index() {
         )}
 
         <div className="flex gap-2 mb-6">
-          {(['roulette', 'shop', 'inventory'] as const).map((tab) => (
+          {(['roulette', 'shop', 'inventory', ...(isAdmin ? ['admin' as const] : [])] as const).map((tab) => (
             <Button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -206,9 +254,11 @@ export default function Index() {
               {tab === 'roulette' && <Icon name="Sparkles" className="mr-2" />}
               {tab === 'shop' && <Icon name="ShoppingBag" className="mr-2" />}
               {tab === 'inventory' && <Icon name="Package" className="mr-2" />}
+              {tab === 'admin' && <Icon name="Shield" className="mr-2" />}
               {tab === 'roulette' && 'Рулетка'}
               {tab === 'shop' && 'Магазин'}
               {tab === 'inventory' && `Инвентарь (${inventory.length})`}
+              {tab === 'admin' && 'Админ'}
             </Button>
           ))}
         </div>
@@ -340,7 +390,98 @@ export default function Index() {
             )}
           </div>
         )}
+
+        {activeTab === 'admin' && isAdmin && (
+          <div className="space-y-4">
+            <Card className="p-6 bg-gradient-to-br from-primary/10 to-secondary/10">
+              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                <Icon name="Shield" size={24} />
+                Админ-панель
+              </h2>
+              <div className="grid gap-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    onClick={() => addCoins(100)}
+                    className="bg-gradient-to-r from-primary to-secondary"
+                  >
+                    <Icon name="Plus" className="mr-2" />
+                    +100 монет
+                  </Button>
+                  <Button
+                    onClick={() => addCoins(1000)}
+                    className="bg-gradient-to-r from-primary to-secondary"
+                  >
+                    <Icon name="Plus" className="mr-2" />
+                    +1000 монет
+                  </Button>
+                </div>
+                <Button
+                  onClick={clearInventory}
+                  variant="outline"
+                  className="w-full"
+                >
+                  <Icon name="Trash2" className="mr-2" />
+                  Очистить инвентарь
+                </Button>
+                <Button
+                  onClick={resetProgress}
+                  variant="destructive"
+                  className="w-full"
+                >
+                  <Icon name="RotateCcw" className="mr-2" />
+                  Сбросить весь прогресс
+                </Button>
+              </div>
+            </Card>
+
+            <Card className="p-6 bg-card/50">
+              <h3 className="text-lg font-semibold mb-4">Статистика</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Монет:</span>
+                  <span className="font-bold">{coins}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Предметов:</span>
+                  <span className="font-bold">{inventory.length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Активный бафф:</span>
+                  <span className="font-bold">{activeBuff ? SHOP_ITEMS.find(s => s.id === activeBuff)?.name : 'Нет'}</span>
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
       </div>
+
+      <Dialog open={showAdminLogin} onOpenChange={setShowAdminLogin}>
+        <DialogContent className="bg-card">
+          <DialogHeader>
+            <DialogTitle className="text-2xl flex items-center gap-2">
+              <Icon name="Lock" size={24} />
+              Вход в админ-панель
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              type="password"
+              placeholder="Введите код доступа"
+              value={adminCode}
+              onChange={(e) => setAdminCode(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && checkAdminCode()}
+              className="text-lg"
+            />
+            <Button
+              onClick={checkAdminCode}
+              className="w-full bg-gradient-to-r from-primary to-secondary"
+            >
+              <Icon name="LogIn" className="mr-2" />
+              Войти
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
