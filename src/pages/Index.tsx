@@ -28,13 +28,13 @@ interface ShopItem {
 }
 
 const ITEMS: Item[] = [
-  { id: '1', name: 'Старая монета', rarity: 'common', value: 3, emoji: '🪙' },
-  { id: '2', name: 'Деревянный меч', rarity: 'common', value: 3, emoji: '🗡️' },
-  { id: '3', name: 'Зелье', rarity: 'common', value: 3, emoji: '🧪' },
-  { id: '4', name: 'Кристалл', rarity: 'common', value: 3, emoji: '💎' },
-  { id: '5', name: 'Золотой слиток', rarity: 'uncommon', value: 10, emoji: '🏅' },
-  { id: '6', name: 'Магический шар', rarity: 'uncommon', value: 10, emoji: '🔮' },
-  { id: '7', name: 'Корона', rarity: 'uncommon', value: 10, emoji: '👑' },
+  { id: '1', name: 'Лилира', rarity: 'common', value: 5.5, emoji: '🦄' },
+  { id: '2', name: 'Шелли', rarity: 'common', value: 5.5, emoji: '🔫' },
+  { id: '3', name: 'Кольт', rarity: 'common', value: 5.5, emoji: '🎯' },
+  { id: '4', name: 'Нита', rarity: 'common', value: 5.5, emoji: '🐻' },
+  { id: '5', name: 'Спайк', rarity: 'uncommon', value: 15, emoji: '🌵' },
+  { id: '6', name: 'Леон', rarity: 'uncommon', value: 15, emoji: '🦎' },
+  { id: '7', name: 'Ворон', rarity: 'uncommon', value: 15, emoji: '🦅' },
 ];
 
 const SHOP_ITEMS: ShopItem[] = [
@@ -115,7 +115,7 @@ export default function Index() {
     setTimeout(() => {
       const luckBoost = activeBuff === 'luck' ? 2 : 1;
       const random = Math.random() * 100;
-      const uncommonChance = 40 * luckBoost;
+      const uncommonChance = 50 * luckBoost;
 
       const rarity: Rarity = random < uncommonChance ? 'uncommon' : 'common';
       const itemsOfRarity = ITEMS.filter(item => item.rarity === rarity);
@@ -311,16 +311,16 @@ export default function Index() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Badge className="bg-gray-500 text-white">Обычный</Badge>
-                    <span className="text-sm">3 монеты</span>
+                    <span className="text-sm">5.5 монет</span>
                   </div>
-                  <span className="text-2xl font-bold text-muted-foreground">60%</span>
+                  <span className="text-2xl font-bold text-muted-foreground">50%</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Badge className="bg-gradient-to-r from-primary to-secondary text-white">Редкий</Badge>
-                    <span className="text-sm">10 монет</span>
+                    <span className="text-sm">15 монет</span>
                   </div>
-                  <span className="text-2xl font-bold text-primary">40%</span>
+                  <span className="text-2xl font-bold text-primary">50%</span>
                 </div>
               </div>
             </Card>
